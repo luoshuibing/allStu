@@ -84,7 +84,21 @@
 互斥锁  | <li>没有额外的消耗</li><li>保证一致性</li<li>实现简单</li> | <li>现成需要等待，性能受影响</li><li>可能有死锁风险</li>
 逻辑过期  | <li>现成无需等待，性能较好</li>                       | <li>不保证一致性</li><li>有额外内存消耗</li><li>实现复杂</li>
 
+### 全局唯一ID
+> 全局ID生成器，是一种分布式系统下用来生成全局唯一ID的工具，一般要满足。redis生成得的ID
+* 高可用
+* 唯一性
+* 高性能
+* 递增性
+* 安全性
 
+![img.png](img.png)
+
+> 雪花算法
+> com.baomidou.mybatisplus.core.toolkit.Sequence
+> com.hmdp.utils.SnowflakeIdGenerator
+
+![img_1.png](img_1.png)
 
 
 
