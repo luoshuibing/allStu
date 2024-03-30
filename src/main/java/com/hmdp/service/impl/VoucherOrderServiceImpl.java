@@ -1,14 +1,16 @@
 package com.hmdp.service.impl;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.dto.Result;
+import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.SeckillVoucher;
 import com.hmdp.entity.VoucherOrder;
 import com.hmdp.mapper.VoucherOrderMapper;
 import com.hmdp.service.ISeckillVoucherService;
 import com.hmdp.service.IVoucherOrderService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.utils.RedisIdWorker;
 import com.hmdp.utils.UserHolder;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,12 +36,22 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
     /**
      * 超卖问题
+     * 一人一单问题
+     * 集群模式syschronized无效
      * @param voucherId
      * @return
      */
     @Override
-    @Transactional
     public Result seckillVoucher(Long voucherId) {
+        return seckillVoucherSynchronized(voucherId);
+    }
+
+    /**
+     * 单机超卖问题
+     * @param voucherId
+     * @return
+     */
+    private Result seckillVoucherSynchronized(Long voucherId) {
         SeckillVoucher seckillVoucher = seckillVoucherService.getById(voucherId);
         if (seckillVoucher.getBeginTime().isAfter(LocalDateTime.now())) {
             return Result.fail("秒杀尚未开始");
@@ -50,7 +62,22 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         if (seckillVoucher.getStock() < 1) {
             return Result.fail("库存不足");
         }
-        boolean result = seckillVoucherService.update().setSql("stock=stock-1").eq("voucher_id", seckillVoucher.getVoucherId()).gt("stock",0).update();
+        UserDTO user = UserHolder.getUser();
+        synchronized (user.getId().toString().intern()) {
+            //获取代理对象
+            IVoucherOrderService voucherOrderService = (IVoucherOrderService) AopContext.currentProxy();
+            return voucherOrderService.createVoucherOrder(voucherId, seckillVoucher);
+        }
+    }
+
+    @Transactional
+    public Result createVoucherOrder(Long voucherId, SeckillVoucher seckillVoucher) {
+        UserDTO user = UserHolder.getUser();
+        Integer count = query().eq("user_id", user.getId()).eq("voucher_id", seckillVoucher.getVoucherId()).count();
+        if (count > 0) {
+            return Result.fail("用户已经购买过了");
+        }
+        boolean result = seckillVoucherService.update().setSql("stock=stock-1").eq("voucher_id", seckillVoucher.getVoucherId()).gt("stock", 0).update();
         if (!result) {
             return Result.fail("库存不足");
         }
@@ -61,6 +88,6 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         save(voucherOrder);
         return Result.ok(voucherOrder.getId());
     }
-
-
 }
+
+
