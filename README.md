@@ -214,6 +214,6 @@ XGROUP XREADGROUP
 * 消息标示
 * 消息确认
 
-
+[主从同步图](https://www.processon.com/diagraming/6603ef7a98e2b2744cc64ee0)
 
 ---

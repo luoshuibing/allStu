@@ -49,7 +49,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     }
 
     /**
-     * 热点key，过期时间
+     * 缓存击穿，热点key，过期时间
      *
      * @param id
      * @return
@@ -103,11 +103,13 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         Shop shop = null;
         try {
             boolean isLock = tryLock(RedisConstants.LOCK_SHOP_KEY + id);
+            /**
+             * 自己加入自旋锁
+             */
             if (!isLock) {
                 Thread.sleep(50);
                 return queryWithMutex(id);
             }
-
             shop = getById(id);
             if (shop == null) {
                 stringRedisTemplate.opsForValue().set(key, "", RedisConstants.CACHE_NULL_TTL, TimeUnit.MINUTES);
@@ -123,7 +125,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     }
 
     /**
-     * 缓存穿透解决方案
+     * 缓存穿透解决方案，缓存空数据
      *
      * @param id
      * @return
