@@ -9,9 +9,11 @@ import com.hmdp.mapper.VoucherOrderMapper;
 import com.hmdp.service.ISeckillVoucherService;
 import com.hmdp.service.IVoucherOrderService;
 import com.hmdp.utils.RedisIdWorker;
+import com.hmdp.utils.SimpleRedisLock;
 import com.hmdp.utils.UserHolder;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,20 +36,47 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     @Autowired
     private RedisIdWorker redisIdWorker;
 
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
     /**
      * 超卖问题
      * 一人一单问题
      * 集群模式syschronized无效
+     *
      * @param voucherId
      * @return
      */
     @Override
     public Result seckillVoucher(Long voucherId) {
-        return seckillVoucherSynchronized(voucherId);
+        SeckillVoucher seckillVoucher = seckillVoucherService.getById(voucherId);
+        if (seckillVoucher.getBeginTime().isAfter(LocalDateTime.now())) {
+            return Result.fail("秒杀尚未开始");
+        }
+        if (seckillVoucher.getEndTime().isBefore(LocalDateTime.now())) {
+            return Result.fail("秒杀已经结束");
+        }
+        if (seckillVoucher.getStock() < 1) {
+            return Result.fail("库存不足");
+        }
+        UserDTO user = UserHolder.getUser();
+         SimpleRedisLock simpleRedisLock = new SimpleRedisLock(stringRedisTemplate, "order:" + user.getId());
+        boolean isLock = simpleRedisLock.tryLock(2000);
+        if (!isLock) {
+            return Result.fail("非法请求");
+        }
+        try {
+            //获取代理对象
+            IVoucherOrderService voucherOrderService = (IVoucherOrderService) AopContext.currentProxy();
+            return voucherOrderService.createVoucherOrder(voucherId, seckillVoucher);
+        } finally {
+            simpleRedisLock.unlock();
+        }
     }
 
     /**
      * 单机超卖问题
+     *
      * @param voucherId
      * @return
      */
