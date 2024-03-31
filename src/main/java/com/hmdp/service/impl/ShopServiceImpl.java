@@ -102,7 +102,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         }
         Shop shop = null;
         try {
-            boolean isLock = tryLock(RedisConstants.LOCK_SHOP_KEY);
+            boolean isLock = tryLock(RedisConstants.LOCK_SHOP_KEY + id);
             if (!isLock) {
                 Thread.sleep(50);
                 return queryWithMutex(id);
@@ -117,7 +117,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } finally {
-            unlock(RedisConstants.LOCK_SHOP_KEY);
+            unlock(RedisConstants.LOCK_SHOP_KEY + id);
         }
         return shop;
     }
@@ -152,7 +152,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     }
 
     private boolean tryLock(String key) {
-        Boolean flag = stringRedisTemplate.opsForValue().setIfPresent(key, "1", 10, TimeUnit.SECONDS);
+        Boolean flag = stringRedisTemplate.opsForValue().setIfAbsent(key, "1", RedisConstants.LOCK_SHOP_TTL, TimeUnit.SECONDS);
         return BooleanUtil.isTrue(flag);
     }
 
