@@ -223,11 +223,151 @@ SETBIT 和 GETBIT
 HyperLoglog命令  
 > PFADD 添加  重复元素只有一次
 > PFCOUNT 计数  
-> PFMERGE 合并  
-> 
+> PFMERGE 合并
+
+### RDB
+RDB称为数据备份文件，即数据快照。当redis发生故障后，从磁盘中读取快照文件，恢复数据。  
+执行save、bgsave会进行保存RDB文件操作。  
+redis宕机会自动进行一次RDB。  
+redis.conf  
+```
+save 900 1
+save 300 10
+save 60 10000
+# 是否压缩，建议不开启，压缩也会消耗cpu
+rdbcompression yes
+#RDB文件名称
+dbfilename dump.rdb
+#文件保存的路径目录
+dir ./  
+```
 
 
+```
+bgsave时，主进程会fork主进程得到子进程，子进程共享主进程的虚拟内存。完成fork后读取内存数据将数据
+写入RDB文件。用新RDB文件替换旧的RDB文件。
+fork采用的是copy-on-write技术。
+当主进程执行读操作的时候，读取共享内存。
+当主进程执行写操作时，会拷贝一份数据，执行写操作。
 
+RDB在服务器宕机或者打到key修改次数会触发bgsave操作。
+
+缺点：
+RDB执行间隔时间长，两次RDB有丢失数据的风险。
+fork子进程、压缩、写入RDB文件都比较耗时。
+```
+### AOF
+```
+AOF全程为Append Only File.Redis每一个写命令都会记录在AOF文件。
+AOF默认是关闭的。可以开启通过
+appendonly yes
+applendfilename 'appendonly.aof'
+AOF记录的频率：
+每一次命令，立即记录。 appendfsync always
+每隔一秒就将缓存区数据写入到AOF文件 appendfsync everysec
+写命令执行完毕放入缓存区，由操作系统决定何时写入文件。 appendfsync no
+
+通过执行bgrewriteof，可以让AOF文件执行重写功能，用最少的命令达到相同的效果。
+重写AOF文件：
+# AOF文件比上次文件 增长超过多少百分比则触发重写
+auto-aof-rewrite-percentage 100
+auto-aof-rewrite-min-size 64mb
+```
+ 配置项  | 刷盘时机   | 优点           |缺点
+ ---- |---|--------------| ------
+ Always  | 同步刷盘   | 可靠性高，几乎不丢失数据 | 性能影响大
+ everysec  | 每秒刷盘   | 性能适中         | 最多丢失1秒数据
+ no  | 操作系统控制 | 性能最好         | 可靠性较差，可能丢失大量数据
+
+### AOF和RDB对比
+ 名称  |                     RDB | AOF          
+ ----: |------------------------:|--------------:
+ 持久化方式  |                    数据快照 | 记录每一个命令 
+ 数据完整性  |         不完整，两次RDB可能丢失数据 | 相对完整，取决于刷盘策略         
+ 文件大小  |              会有压缩，文件体积小 | 记录命令，文件体积大
+ 宕机恢复速度  |                      很快 | 慢
+ 数据恢复优先级|              低，完整性不如AOF | 高，数据完整性更高
+ 系统资源占用  |            高，大量cpu和内存消耗 | 低，主要是磁盘消耗，执行重写命令会占用大量内存和cpu
+ 使用场景  |  可以容忍数分钟的数据丢失，追求更高的启动速度 | 对数据安全性要求较高常见
+
+### 主从集群数据同步原理 和增量同步
+
+注意：  
+> repl_baklog大小有上限，写满后会覆盖最早期的数据。如果slave断开时间过久，导致尚未备份的数据被覆盖，则无法基于log
+> 做增量同步，只能再次全量同步
+
+```
+优化主从集群：
+在master中配置repl-diskless-sync yes启动无磁盘复制，避免全量同步时的磁盘IO。
+redis单节点上的内存占用不要太大，减少RDB导致的过多磁盘IO。
+适当提高repl_baklog的大小，发现slave宕机时，尽快实现故障恢复，尽可能避免全量同步。
+限制一个master上的slave节点数量，如果实在是太多slave，则可以采用主-从-从链式结构，减少master压力。
+
+```
 [主从同步图](https://www.processon.com/diagraming/6603ef7a98e2b2744cc64ee0)
+
+### 哨兵模式
+```
+哨兵模式：实现主从集群的自动故障恢复。
+监控：检查主从节点的工作状态。
+故障恢复：master宕机，将一个slave提升为master。故障恢复以后，也是以新的master为主节点。
+通知：sentinel将集群信息发送给redis的客户端。
+
+服务状态监控：
+sentinel基于心跳机制检测服务状态。每隔一秒向集群的每一个实例发送ping命令
+主观下线：如果单个sentinel节点发现某个redis未在规定时间响应，则认为该实例主观下线。
+客观下线：若超过指定数量的sentinel都认为该实例主观下线，则该实例客观下线。quorum值最好超过sentinel实例数量一般。
+
+选举新的master：
+一旦发现master故障，sentinel需要在slave中选择一个作为新的master
+1.判断slave节点和master节点断开时间长短，如果超过指定值（down-after-milliseconds*10）则会排除该slave节点
+2.判断slave节点的slave-priority值，越小优先级越高，如果是0则永不参与选举
+3.如果slave-prority一样，则判断offset，越大说明数据越新，优先级越高
+4.判断slave节点的id大小，越小优先级越高
+
+实现故障转移：
+1.sentinel给备选的slave1节点发送slaveof no one 命令，该节点成为master
+2.sentinel给所有其他slave发送slaveof命令，让这些slave成为新master从节点，开始同步数据
+3.sentinel将故障节点标记为slave，当故障恢复后会自动成为新的master的slave节点
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ---
