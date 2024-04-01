@@ -331,6 +331,18 @@ sentinel基于心跳机制检测服务状态。每隔一秒向集群的每一个
 3.sentinel将故障节点标记为slave，当故障恢复后会自动成为新的master的slave节点
 ```
 
+### 分片集群
+
+redis会把每一个master节点映射到0-16383共16384个插槽，查看集群信息时就能看到。
+
+集群连接命令
+
+`redis-cli -c -p 7001`
+
+`redis-cli --cluster add-node`
+
+`redis-cli --cluster help`
+
 
 
 
