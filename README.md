@@ -214,6 +214,20 @@ XGROUP XREADGROUP
 * 消息标示
 * 消息确认
 
+### bitmap
+SETBIT 和 GETBIT  
+
+### UV和PV
+> UV是独立访客量，通过互联网访问、浏览这个网页的自然人。
+> PV是PageView，页面访问量，用户每访问网站的一个页面。  
+HyperLoglog命令  
+> PFADD 添加  重复元素只有一次
+> PFCOUNT 计数  
+> PFMERGE 合并  
+> 
+
+
+
 [主从同步图](https://www.processon.com/diagraming/6603ef7a98e2b2744cc64ee0)
 
 ---
