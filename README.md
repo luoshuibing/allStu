@@ -343,12 +343,23 @@ redis会把每一个master节点映射到0-16383共16384个插槽，查看集群
 
 `redis-cli --cluster help`
 
+`redis-cli --cluster reshard`
 
+故障转移
 
+* 首先该实例与其他实例失去连接
+* 疑似宕机
+* 确认下线，自动提升一个slave为新的master
 
+数据迁移
 
+利用cluster failover命令可以手动让集群中的某个master宕机，切换到执行cluster failover命令的这个slave节点，实现无感知的数据迁移。
 
-
+三种不同的模式：
+* 缺省：默认流程
+* force：省略了对offset的一致性校验
+* takeover：直接执行，忽略数据一致性、忽略master状态和其他master的意见
+![img_5.png](img_5.png)
 
 
 
