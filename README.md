@@ -117,14 +117,33 @@ Nacos多环境配置共享问题
 * 分别启动多个nacos节点
 * nginx反向代理
 
+Fegin使用步骤
+* 引入依赖
+* 添加@EnableFeginClients注解
+* 编写FeignClient接口
+* 使用FeginClient中定义的方法替代RestTemplate
 
+自定义Feign的配置
 
+![img_5.png](img_5.png)
 
+Feign的日志配置：
+* 方式一配置文件，feign.client.config.xxx.loggerLevel
+  * 如果xxx是default则代表全局
+  * 如果xxx是服务名称，代表某个服务
+* 方式二java代码配置Logger.Level这个Bean
+  * 如果在@EnableFeignClients注解声明则代表全局
+  * 如果在@FeignClient注解中声明则代表某服务
 
+Feign性能优化
+* 日志级别尽量用basic
+* 使用HttpClient或者OkHttp代替URLConnection
+  * 引入feign-httpclient依赖
+  * 配置文件开启httpClient功能
 
-
-
-
+Feign最佳实践
+* controller和feignClient继承同一接口
+* 将FeignClient、pojo、feign的默认配置都定义到一个项目中，供消费者使用
 
 
 
