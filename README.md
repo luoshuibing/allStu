@@ -145,13 +145,54 @@ Feign最佳实践
 * controller和feignClient继承同一接口
 * 将FeignClient、pojo、feign的默认配置都定义到一个项目中，供消费者使用
 
+网关的作用
+* 对用户请求做身份认证、权限校验
+* 将用户请求路由到微服务，并实现负载均衡
+* 对用户请求做限流
 
+网关搭建步骤：
+* 引入nacos服务发现和gateway依赖
+* 配置application.yml，包括基本信息、nacos地址、路由
 
+路由配置包括：
+* 路由ID
+* 路由目标，http固定地址，lb代表负载均衡
+* 路由断言：判断路由规则
+* 路由过滤器：对请求和响应做出处理
 
+PredicateFactory作用：
+* 读取用户定义的断言条件，对请求做出判断
 
+Path=/user/**
+* 路径是以/user开头救人位符合
 
+# 网关过滤器（gateway）
 
+过滤器的作用
+* 对路由的请求或者响应做加工处理
+* 配置在路由下的过滤器只对当前路由的请求生效
 
+defaultFilter的作用
+* 对所有路由都生效的过滤器
+
+全局过滤器
+* 对所有路由都生效的过滤器，并且可以自定义处理逻辑
+
+实现全局过滤器
+* 实现GlobalFilter接口
+* 添加@Order注解
+* 编写处理逻辑
+
+过滤器执行顺序
+* 请求进入网关会碰到三类过滤器：当前路由的过滤器、DefaultFilter、GlobalFilter
+* 请求路由后，会将当前路由过滤器和DefaultFilter、GlobalFilter，合并到一个过滤器链
+
+路由过滤器、defaultFilter、全局过滤器的执行顺序
+* order值越小、优先级越高
+* 当order值一样时，顺序是defaultFilter最先，然后是局部的路由过滤器，最后是全局过滤器
+
+跨域问题
+* 配置
 
 
 
