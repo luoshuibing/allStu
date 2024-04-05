@@ -10,7 +10,7 @@ spring:
     name: orderservice
   cloud:
     nacos:
-      server-addr: localhost:8848
+      server-addr: localhost:80
       discovery:
         cluster-name: SH
 mybatis:

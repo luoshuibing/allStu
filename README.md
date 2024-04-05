@@ -96,11 +96,26 @@ Nacos和Eureka的区别
 * Nacos支持服务列表变更的消息推送模式，服务列表更新及时
 * Nacos集群默认采用AP方式，当集群中存在非临时实例时，采用CP模式；Eureka采用AP方式
 
+Nacos配置管理步骤
+* 在nacos中添加配置文件
+* 在位服务中引入nacos的config依赖
+* 在微服务中添加bootstrap.yml，配置nacos地址
 
+Nacos配置自动刷新两种方式
+* @RefreshScope
+* @ConfigurationProperties
 
+Nacos多环境配置共享问题
+* [服务名]-[spring.profile.action].yaml，环境配置
+* [服务名].yaml，默认配置，多环境共享
+* [服务名]-[环境].yaml>[服务名].yaml>本地配置
 
-
-
+集群搭建：
+* 搭建MySQL集群并初始化数据库表
+* 下载解压nacos
+* 修改集群配置、数据库配置
+* 分别启动多个nacos节点
+* nginx反向代理
 
 
 

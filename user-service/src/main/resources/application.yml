@@ -6,15 +6,6 @@ spring:
     username: root
     password: root
     driver-class-name: com.mysql.jdbc.Driver
-  application:
-    name: userservice
-  cloud:
-    nacos:
-      server-addr: localhost:8848
-      discovery:
-        cluster-name: HZ
-        namespace: 913ce2c1-5d96-4f08-9798-1861d1025ede #dev环境
-        ephemeral: false # 是否是临时实例
 mybatis:
   type-aliases-package: cn.itcast.user.pojo
   configuration:
@@ -24,3 +15,7 @@ logging:
     cn.itcast: debug
   pattern:
     dateformat: MM-dd HH:mm:ss:SSS
+
+
+pattern:
+  name: 本地环境local
