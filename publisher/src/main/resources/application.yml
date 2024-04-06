@@ -1,7 +1,8 @@
 logging:
   pattern:
     dateformat: MM-dd HH:mm:ss:SSS
-    
+  level:
+    cn.itcast: debug
 spring:
   rabbitmq:
     host: 192.168.88.108 # 主机名
@@ -9,3 +10,10 @@ spring:
     virtual-host: / # 虚拟主机
     username: root # 用户名
     password: root # 密码
+    connection-timeout: 1s
+    template:
+      retry:
+        enabled: true
+        multiplier: 2 #针对生产者的连接时长
+    publisher-confirm-type: none #开启  有三种方式   none:关闭confirm机制，simple：同步阻塞等待MQ的回执消息，correlated:MQ异步回调方式返回回执消息
+    publisher-returns: false #开启publisher return机制  true：开启，false：关闭
