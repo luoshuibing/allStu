@@ -1,5 +1,6 @@
 package cn.itcast.mq;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.ExchangeTypes;
 import org.springframework.amqp.rabbit.annotation.Exchange;
 import org.springframework.amqp.rabbit.annotation.Queue;
@@ -11,6 +12,7 @@ import java.time.LocalTime;
 import java.util.Map;
 
 @Component
+@Slf4j
 public class SpringRabbitListener {
 
     // @RabbitListener(queues = "simple.queue")
@@ -81,6 +83,11 @@ public class SpringRabbitListener {
     @RabbitListener(queues = "dlx.queue")
     public void listenDlxQueue(String msg) {
         System.out.println("dlx.queue 消费者接收到消息 ：【" + msg + "】");
+    }
+
+    @RabbitListener(bindings = @QueueBinding(value=@Queue(name="delay.queue",durable = "true"),exchange=@Exchange(name="delay.direct",delayed = "true"),key="delay"))
+    public void listenDelayMessage(String msg){
+        log.info("接收到delay.queue的延迟消息：{}",msg);
     }
 
 }

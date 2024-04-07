@@ -36,7 +36,7 @@ public class SpringAmqpTest {
 
     @Test
     public void testTTLmessage() {
-        rabbitTemplate.convertAndSend("simple.direct", "hi", "hello",new MessagePostProcessor() {
+        rabbitTemplate.convertAndSend("simple.direct", "hi", "hello", new MessagePostProcessor() {
             @Override
             public Message postProcessMessage(Message message) throws AmqpException {
                 message.getMessageProperties().setExpiration("10000");
@@ -123,42 +123,24 @@ public class SpringAmqpTest {
     }
 
     @Test
-    public void testPageOut(){
-        Message msg = MessageBuilder.withBody("hello".getBytes(StandardCharsets.UTF_8))
-                .setDeliveryMode(MessageDeliveryMode.NON_PERSISTENT).build();
+    public void testPageOut() {
+        Message msg = MessageBuilder.withBody("hello".getBytes(StandardCharsets.UTF_8)).setDeliveryMode(MessageDeliveryMode.NON_PERSISTENT).build();
         for (int i = 0; i < 1000000; i++) {
-            rabbitTemplate.convertAndSend("lazy.queue",msg);
+            rabbitTemplate.convertAndSend("lazy.queue", msg);
         }
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    @Test
+    public void testPublisherDelayMessage() {
+        String message = "hello,delayed message";
+        rabbitTemplate.convertAndSend("delay.direct", "delay", message, new MessagePostProcessor() {
+            @Override
+            public Message postProcessMessage(Message message) throws AmqpException {
+                message.getMessageProperties().setDelay(5000);
+                return message;
+            }
+        });
+    }
 
 
 }

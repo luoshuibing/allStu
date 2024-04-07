@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 @Component
-public class FanoutConfig {
+public class MqMetaDataConfig {
 
     @Bean
     public Queue lazyQueue() {
@@ -52,6 +52,13 @@ public class FanoutConfig {
     public Queue objectQueue() {
         return new Queue("object.queue");
     }
+
+    @Bean
+    public DirectExchange delayExchange(){
+        //设置delay的属性为true
+        return ExchangeBuilder.directExchange("delay.bean.direct").delayed().durable(true).build();
+    }
+
 
 
 }

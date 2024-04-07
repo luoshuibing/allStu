@@ -1,7 +1,8 @@
 logging:
   pattern:
     dateformat: MM-dd HH:mm:ss:SSS
-    
+  level:
+    root: info
 spring:
   rabbitmq:
     host: 192.168.88.108 # 主机名
