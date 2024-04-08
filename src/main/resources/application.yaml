@@ -5,7 +5,7 @@ spring:
     url: jdbc:mysql://192.168.88.101:3306/heima?useSSL=false
     username: root
     password: root
-    driver-class-name: com.mysql.jdbc.Driver
+    driver-class-name: com.mysql.cj.jdbc.Driver
 logging:
   level:
     cn.itcast: debug
