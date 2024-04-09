@@ -645,13 +645,10 @@ elasticsearch中分词器的组成
 * tokenizer filter：将tokenizer输出的词条做进一步处理。例如大小写转化、同义词处理、拼音处理等
 
 
-数据同步
+数据同步  查看elasticSearch-data-sync 和elasticSearch-javaapi
 * 同步调用
 * 异步通知
 * 监听binlog
-
-
-
 
 
 
