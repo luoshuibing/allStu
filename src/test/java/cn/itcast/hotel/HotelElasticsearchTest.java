@@ -15,7 +15,6 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
-import org.elasticsearch.client.Request;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -60,7 +59,7 @@ public class HotelElasticsearchTest {
 
     @BeforeEach
     void setUp() {
-        this.client = new RestHighLevelClient(RestClient.builder(HttpHost.create("http://192.168.88.109:9200")));
+        this.client = new RestHighLevelClient(RestClient.builder(HttpHost.create("http://192.168.88.109:9222")));
     }
 
     @AfterEach
