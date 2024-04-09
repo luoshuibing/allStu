@@ -476,7 +476,14 @@ GET /hotel/_search
 }
 
 
-
+PUT /itcast
+{
+  "settings":{
+    "number_of_shards":3,//分片数量
+    "number_of_replicas":1//副本数量
+  }
+  "mappings":{}
+}
 
 
 
