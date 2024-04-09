@@ -15,6 +15,7 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.client.Request;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -96,6 +97,15 @@ public class HotelElasticsearchTest {
     void testIndexDocument() throws IOException {
         IndexRequest request = new IndexRequest("indexName").id("1");
         request.source("{\"name\":\"Java\",\"age\":21}", XContentType.JSON);
+        client.index(request, RequestOptions.DEFAULT);
+    }
+
+    @Test
+    void testAddDocument() throws IOException {
+        List<Hotel> hotels = hotelService.list();
+        HotelDoc hotelDoc = new HotelDoc(hotels.get(0));
+        IndexRequest request = new IndexRequest("hotel").id(hotelDoc.getId().toString());
+        request.source(JSON.toJSONString(hotelDoc), XContentType.JSON);
         client.index(request, RequestOptions.DEFAULT);
     }
 

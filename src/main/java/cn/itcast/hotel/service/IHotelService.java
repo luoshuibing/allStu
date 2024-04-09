@@ -14,4 +14,8 @@ public interface IHotelService extends IService<Hotel> {
     Map<String, List<String>> filters(RequestParams requestParams);
 
     List<String> getSuggestions(String key);
+
+    void inserDoctById(Long id);
+
+    void deleteDocById(Long id);
 }
