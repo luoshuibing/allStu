@@ -25,9 +25,16 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.elasticsearch.search.sort.SortOrder;
+import org.elasticsearch.search.suggest.Suggest;
+import org.elasticsearch.search.suggest.SuggestBuilder;
+import org.elasticsearch.search.suggest.SuggestBuilders;
+import org.elasticsearch.search.suggest.completion.CompletionSuggestion;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,7 +49,7 @@ import java.util.Map;
 import static cn.itcast.hotel.constants.HotelConstants.MAPPING_TEMPLATE;
 
 @SpringBootTest
-public class HotelIndexTest {
+public class HotelElasticsearchTest {
 
     private RestHighLevelClient client;
 
@@ -90,17 +97,6 @@ public class HotelIndexTest {
         IndexRequest request = new IndexRequest("indexName").id("1");
         request.source("{\"name\":\"Java\",\"age\":21}", XContentType.JSON);
         client.index(request, RequestOptions.DEFAULT);
-    }
-
-    @Test
-    void testAddDocument() throws IOException {
-        List<Hotel> hotels = hotelService.list();
-        for (Hotel hotel : hotels) {
-            HotelDoc hotelDoc = new HotelDoc(hotel);
-            IndexRequest request = new IndexRequest("hotel").id(hotelDoc.getId().toString());
-            request.source(JSON.toJSONString(hotelDoc), XContentType.JSON);
-            client.index(request, RequestOptions.DEFAULT);
-        }
     }
 
     @Test
@@ -243,6 +239,36 @@ public class HotelIndexTest {
                 }
             }
             System.out.println(hotelDoc);
+        }
+        System.out.println(response);
+    }
+
+    @Test
+    void testAggregation() throws IOException {
+        SearchRequest request = new SearchRequest("hotel");
+        request.source().size(0);
+        request.source().aggregation(AggregationBuilders.terms("brandAgg").field("brand").size(20));
+        SearchResponse response = client.search(request, RequestOptions.DEFAULT);
+        Aggregations aggregations = response.getAggregations();
+        Terms brandTerms = aggregations.get("brandAgg");
+        List<? extends Terms.Bucket> buckets = brandTerms.getBuckets();
+        for (Terms.Bucket bucket : buckets) {
+            String brandName = bucket.getKeyAsString();
+            System.out.println(brandName);
+        }
+        System.out.println("==================");
+    }
+
+    @Test
+    void testSuggest() throws IOException {
+        SearchRequest request = new SearchRequest("hotel");
+        request.source().suggest(new SuggestBuilder().addSuggestion("mySuggestion", SuggestBuilders.completionSuggestion("suggestion").prefix("h").skipDuplicates(true).size(10)));
+        SearchResponse response = client.search(request, RequestOptions.DEFAULT);
+        Suggest suggest = response.getSuggest();
+        CompletionSuggestion suggestion = suggest.getSuggestion("mySuggestion");
+        for (CompletionSuggestion.Entry.Option option : suggestion.getOptions()) {
+            String text = option.getText().string();
+            System.out.println(text);
         }
         System.out.println(response);
     }

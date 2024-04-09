@@ -478,6 +478,7 @@
       getGeoLoc(){
         this.loading = true;
         this.geolocation.getCurrentPosition((status,result) => {
+          debugger
           this.loading = false;
           if(status === 'complete'){
             console.log("successs")

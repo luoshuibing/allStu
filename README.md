@@ -136,7 +136,6 @@ POST /heima/_update/1
   "doc":{
     "info":"黑马1程序员Java讲师1"
   }
-
 }
 
 复杂索引创建
@@ -280,7 +279,7 @@ GET /hotel/_search
   }
 }
 
-boolean查询
+boolean查询,must_not,和filter不参与打分
 GET /hotel/_search
 {
   "query":{
@@ -396,6 +395,85 @@ GET /hotel/_search
   }
 }
 
+GET /hotel/_search
+{
+  "size": 0,
+  "aggs": {
+    "brandAgg": {
+      "terms": {
+        "field": "brand",
+        "size": 10,
+        "order": {
+          "_count": "asc"
+        }
+      }
+    }
+  }
+}
+
+GET /hotel/_search
+{
+  "size": 0,
+  "aggs": {
+    "brandAgg": {
+      "terms": {
+        "field": "brand",
+        "size": 10
+      }
+    }
+  }
+}
+
+
+GET /hotel/_search
+{
+  "query": {
+    "range": {
+      "price": {
+        "lte": 200
+      }
+    }
+  }, 
+  "size": 0,
+  "aggs": {
+    "brandAgg": {
+      "terms": {
+        "field": "brand",
+        "size": 10
+      }
+    }
+  }
+}
+
+GET /hotel/_search
+{
+  "query": {
+    "range": {
+      "price": {
+        "lte": 200
+      }
+    }
+  }, 
+  "size": 0,
+  "aggs": {
+    "brandAgg": {
+      "terms": {
+        "field": "brand",
+        "size": 20,
+        "order": {
+          "scoreAgg.avg": "desc"
+        }
+      },
+      "aggs": {
+        "scoreAgg": {
+          "stats": {
+            "field": "score"
+          }
+        }
+      }
+    }
+  }
+}
 
 
 
@@ -407,11 +485,107 @@ GET /hotel/_search
 
 
 
+```
+
+```
+拼音分词器演示
+PUT /test
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "my_analyzer": {
+          "tokenizer": "ik_max_word",
+          "filter": "py"
+        }
+      },
+      "filter": {
+        "py": {
+          "type": "pinyin",
+          "keep_full_pinyin": false,
+          "keep_joined_full_pinyin": true,
+          "keep_original": true,
+          "limit_first_letter_length": 16,
+          "remove_duplicated_term": true,
+          "none_chinese_pinyin_tokenize": false
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "name": {
+        "type": "text",
+        "analyzer": "my_analyzer",
+        "search_analyzer": "ik_smart"
+      }
+    }
+  }
+}
 
 
+DELETE /test
+
+POST /test/_doc/1
+{
+  "id": 1,
+  "name": "狮子"
+}
+POST /test/_doc/2
+{
+  "id": 2,
+  "name": "虱子"
+}
 
 
+GET /test/_search
+{
+  "query": {
+    "match": {
+      "name": "掉入狮子笼咋办"
+    }
+  }
+}
 
+// 自动补全的索引库
+PUT test
+{
+  "mappings": {
+    "properties": {
+      "title":{
+        "type": "completion"
+      }
+    }
+  }
+}
+// 示例数据
+POST test/_doc
+{
+  "title": ["Sony", "WH-1000XM3"]
+}
+POST test/_doc
+{
+  "title": ["SK-II", "PITERA"]
+}
+POST test/_doc
+{
+  "title": ["Nintendo", "switch"]
+}
+
+// 自动补全查询
+POST /test/_search
+{
+  "suggest": {
+    "title_suggest": {
+      "text": "s", // 关键字
+      "completion": {
+        "field": "title", // 补全字段
+        "skip_duplicates": true, // 跳过重复的
+        "size": 10 // 获取前10条结果
+      }
+    }
+  }
+}
 
 ```
 
@@ -428,8 +602,8 @@ FSQ
 bool查询种类
 * must：必须匹配
 * should：选择性匹配
-* must_not:必须不匹配
-* filter：必须匹配
+* must_not:必须不匹配 不参与算分
+* filter：必须匹配   不参与算分
 
 分页
 
@@ -453,4 +627,49 @@ scroll:
 
 * 将搜索结果中的关键字用标签标记出来
 * 在页面中给标签添加css样式
+
+聚合可以实现对文档数据的统计、分析、运算。
+* 桶聚合：用来对文档做分组
+  * TermAggregation:按照文档字段值分组
+  * Date Histogram:按照日期阶梯分组
+* 度量聚合：计算一些值
+  * Avg:求平均值
+  * Max:求最大值
+  * Min：求最小值
+  * Status:同时求avg、min、max等
+* 管道聚合：其他聚合的结果为基础做聚合
+
+elasticsearch中分词器的组成
+* character filters:在tokenizer之前对文本进行处理.例如删除字符、替换字符
+* tokenizer：将文本按照一定的规则切割成词条（term）。例如keyword，就是部分词，还有ik_smart
+* tokenizer filter：将tokenizer输出的词条做进一步处理。例如大小写转化、同义词处理、拼音处理等
+
+
+数据同步
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
