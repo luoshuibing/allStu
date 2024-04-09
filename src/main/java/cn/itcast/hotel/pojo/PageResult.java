@@ -1,17 +1,19 @@
 package cn.itcast.hotel.pojo;
 
-
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-@AllArgsConstructor
 public class PageResult {
-
     private Long total;
+    private List<Hotel> hotels;
 
-    private List<HotelDoc> hotels;
+    public PageResult() {
+    }
 
+    public PageResult(Long total, List<Hotel> hotels) {
+        this.total = total;
+        this.hotels = hotels;
+    }
 }

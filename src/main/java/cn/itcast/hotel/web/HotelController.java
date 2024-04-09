@@ -1,36 +1,51 @@
 package cn.itcast.hotel.web;
 
-
+import cn.itcast.hotel.pojo.Hotel;
 import cn.itcast.hotel.pojo.PageResult;
-import cn.itcast.hotel.pojo.RequestParams;
 import cn.itcast.hotel.service.IHotelService;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
+import java.security.InvalidParameterException;
 
-@RequestMapping("/hotel")
 @RestController
+@RequestMapping("hotel")
 public class HotelController {
 
     @Autowired
     private IHotelService hotelService;
 
-    @PostMapping("/list")
-    public PageResult search(@RequestBody RequestParams requestParams){
-        return hotelService.search(requestParams);
+    @GetMapping("/{id}")
+    public Hotel queryById(@PathVariable("id") Long id){
+        return hotelService.getById(id);
     }
 
-    @PostMapping("/filters")
-    public Map<String, List<String>> filter(@RequestBody RequestParams requestParams){
-        return hotelService.filters(requestParams);
+    @GetMapping("/list")
+    public PageResult hotelList(
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "size", defaultValue = "1") Integer size
+    ){
+        Page<Hotel> result = hotelService.page(new Page<>(page, size));
+
+        return new PageResult(result.getTotal(), result.getRecords());
     }
 
-    @GetMapping("/suggestion")
-    public List<String> getSuggestions(@RequestParam String key){
-        return hotelService.getSuggestions(key);
+    @PostMapping
+    public void saveHotel(@RequestBody Hotel hotel){
+        hotelService.save(hotel);
     }
 
+    @PutMapping()
+    public void updateById(@RequestBody Hotel hotel){
+        if (hotel.getId() == null) {
+            throw new InvalidParameterException("id不能为空");
+        }
+        hotelService.updateById(hotel);
+    }
 
+    @DeleteMapping("/{id}")
+    public void deleteById(@PathVariable("id") Long id) {
+        hotelService.removeById(id);
+    }
 }
