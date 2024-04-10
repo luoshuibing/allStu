@@ -35,7 +35,15 @@ seata:
       username: nacos
       password: nacos
   tx-service-group: seata-demo #事务组名称
-  service:
-    vgroup-mapping:
-      seata-demo: SH
+#  service:
+#    vgroup-mapping:
+#      seata-demo: SH
   data-source-proxy-mode: AT
+  config:
+    type: nacos
+    nacos:
+      server-addr: 127.0.0.1:8848
+      username: nacos
+      password: nacos
+      group: SEATA_GROUP
+      data-id: client.properties
