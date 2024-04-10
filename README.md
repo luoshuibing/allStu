@@ -476,8 +476,14 @@ GET /hotel/_search
 }
 
 
-
-
+POST /itcast/_search
+{
+	"explain": true,
+	"query":{
+		"match_all":{
+		}
+	}
+}
 
 
 
@@ -587,6 +593,8 @@ POST /test/_search
   }
 }
 
+
+
 ```
 
 [DSL文档地址](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-filter-context.html)
@@ -645,13 +653,36 @@ elasticsearch中分词器的组成
 * tokenizer filter：将tokenizer输出的词条做进一步处理。例如大小写转化、同义词处理、拼音处理等
 
 
-数据同步
+ES集群的节点角色
+
+节点类型  | 配置参数                          | 默认值  |节点职责
+---- |-------------------------------|------|----
+master eligible  | node.master                   | true |备选主节点：主节点可以管理和记录集群状态、决定分片在哪个节点、处理创建和删除索引库的请求
+data  | node.date                     | true |数据节点：存储数据、搜索、聚合、CRUD
+ingest  | node.ingest                   | true |数据存储之前的预处理
+coordinating  | 上面3个参数都为false则为coordinating节点 | 无    |路由请求到其他节点合并其他节点处理的结果，返回给用户
 
 
+![img_2.png](img_2.png)
+
+ES集群的脑裂
+
+默认情况下，每个节点都是master eligible节点，因此一般master节点宕机，其他候选节点会选举一个成为主节点。当主节点与其他节点网络故障时，可能发生脑裂问题。
+
+为了避免脑裂，需要要求选票超过（eligible节点数量+1）/2才能当选为主，因此eligible节点数量最好是奇数。对应配置是discovery.zen.minimun_master_nodes.
+在es7.0以后，已经成为默认配置。
+
+分布式新增确定分片
+* coordinating node根据id做hash运算，得到结果对shard数量取余，余数就是对应的分片
+
+分布式查询
+* 分散阶段：coordinating node将查询请求分发给不同分片
+* 收集阶段：将查询结果汇总到coordinating node，整理并返回给用户
 
 
-
-
+故障转移：
+* master宕机后，EligibleMaster选举为新的主节点
+* master节点监控分片、节点状态，将故障节点上的分片转移到正常节点，确保数据安全。
 
 
 
