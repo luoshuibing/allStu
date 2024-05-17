@@ -115,6 +115,10 @@ docker tag命令
 * 拉取使用docker pull命令
 
 
+开启启动设置
+docker update --restart=always tracker
+docker update --restart=always storage
+
 
 
 
