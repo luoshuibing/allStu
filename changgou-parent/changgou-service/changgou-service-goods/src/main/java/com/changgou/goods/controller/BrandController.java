@@ -4,7 +4,6 @@ import com.changgou.goods.pojo.Brand;
 import com.changgou.goods.service.BrandService;
 import com.github.pagehelper.PageInfo;
 import entity.Result;
-import entity.StatusCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,36 +18,36 @@ public class BrandController {
 
     @GetMapping
     public Result<List<Brand>> findAll() {
-        return new Result<>(true, StatusCode.OK, "查询成功", brandService.findAll());
+        return Result.ok("查询成功", brandService.findAll());
     }
 
     @GetMapping("/{id}")
     public Result<Brand> findById(@PathVariable Integer id) {
-        return new Result<Brand>(true, StatusCode.OK, "查询成功", brandService.findById(id));
+        return Result.ok("查询成功", brandService.findById(id));
     }
 
     @PostMapping
     public Result add(@RequestBody Brand brand) {
         brandService.add(brand);
-        return new Result(true, StatusCode.OK, "添加成功");
+        return Result.ok("添加成功");
     }
 
     @PutMapping
     public Result update(@RequestBody Brand brand) {
         brandService.update(brand);
-        return new Result(true, StatusCode.OK, "更新成功");
+        return Result.ok("更新成功");
     }
 
     @DeleteMapping("/{id}")
     public Result delete(@PathVariable Integer id) {
         brandService.delete(id);
-        return new Result(true, StatusCode.OK, "删除成功");
+        return Result.ok("删除成功");
     }
 
-    @PostMapping(value = "/search" )
-    public Result<List<Brand>> findList(@RequestBody(required = false) Brand brand){
+    @PostMapping(value = "/search")
+    public Result<List<Brand>> findList(@RequestBody(required = false) Brand brand) {
         List<Brand> list = brandService.findList(brand);
-        return new Result<>(true,StatusCode.OK,"查询成功",list);
+        return Result.ok("查询成功", list);
     }
 
     /***
@@ -57,11 +56,11 @@ public class BrandController {
      * @param size:每页显示多少条
      * @return
      */
-    @GetMapping(value = "/search/{page}/{size}" )
-    public Result<PageInfo> findPage(@PathVariable  int page, @PathVariable  int size){
-        //分页查询
+    @GetMapping(value = "/search/{page}/{size}")
+    public Result<PageInfo> findPage(@PathVariable int page, @PathVariable int size) {
+        // 分页查询
         PageInfo<Brand> pageInfo = brandService.findPage(page, size);
-        return new Result<>(true,StatusCode.OK,"查询成功",pageInfo);
+        return Result.ok("查询成功", pageInfo);
     }
 
     /***
@@ -71,11 +70,11 @@ public class BrandController {
      * @param size
      * @return
      */
-    @PostMapping(value = "/search/{page}/{size}" )
-    public Result<PageInfo> findPage(@RequestBody(required = false) Brand brand, @PathVariable  int page, @PathVariable  int size){
-        //执行搜索
+    @PostMapping(value = "/search/{page}/{size}")
+    public Result<PageInfo> findPage(@RequestBody(required = false) Brand brand, @PathVariable int page, @PathVariable int size) {
+        // 执行搜索
         PageInfo<Brand> pageInfo = brandService.findPage(brand, page, size);
-        return new Result(true,StatusCode.OK,"查询成功",pageInfo);
+        return Result.ok("查询成功", pageInfo);
     }
 
 }

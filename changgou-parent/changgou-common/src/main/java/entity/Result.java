@@ -11,10 +11,10 @@ import java.io.Serializable;
  * @since 1.0
  */
 public class Result<T> implements Serializable {
-    private boolean flag;//是否成功
-    private Integer code;//返回码
-    private String message;//返回消息
-    private T data;//返回数据
+    private boolean flag;// 是否成功
+    private Integer code;// 返回码
+    private String message;// 返回消息
+    private T data;// 返回数据
 
     public Result(boolean flag, Integer code, String message, T data) {
         this.flag = flag;
@@ -35,8 +35,12 @@ public class Result<T> implements Serializable {
         this.message = "操作成功!";
     }
 
-    public static Result<T> ok(String message,T t){
+    public static <T> Result<T> ok(String message, T t) {
         return new Result<>(true, StatusCode.OK, message, t);
+    }
+
+    public static <T> Result<T> ok(String message) {
+        return new Result<>(true, StatusCode.OK, message);
     }
 
     public boolean isFlag() {
