@@ -16,11 +16,11 @@ public class Result<T> implements Serializable {
     private String message;//返回消息
     private T data;//返回数据
 
-    public Result(boolean flag, Integer code, String message, Object data) {
+    public Result(boolean flag, Integer code, String message, T data) {
         this.flag = flag;
         this.code = code;
         this.message = message;
-        this.data = (T) data;
+        this.data = data;
     }
 
     public Result(boolean flag, Integer code, String message) {
@@ -33,6 +33,10 @@ public class Result<T> implements Serializable {
         this.flag = true;
         this.code = StatusCode.OK;
         this.message = "操作成功!";
+    }
+
+    public static Result<T> ok(String message,T t){
+        return new Result<>(true, StatusCode.OK, message, t);
     }
 
     public boolean isFlag() {

@@ -18,7 +18,7 @@ public class BrandController {
     private BrandService brandService;
 
     @GetMapping
-    public Result<Brand> findAll() {
+    public Result<List<Brand>> findAll() {
         return new Result<>(true, StatusCode.OK, "查询成功", brandService.findAll());
     }
 

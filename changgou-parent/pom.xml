@@ -22,6 +22,7 @@
         <module>changgou-eureka</module>
         <module>changgou-common</module>
         <module>changgou-common-db</module>
+        <module>changgou-service-file</module>
     </modules>
 
     <properties>
